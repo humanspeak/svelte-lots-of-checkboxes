@@ -33,11 +33,13 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 #### In-Scope
 
 1. **Application Frontend**
+
    - Written in [Svelte](https://svelte.dev/).
    - Single-page or minimal-page interface.
    - Renders the grid of up to one million checkboxes - needs to happen in a lazy fashion.
 
 2. **Cloudflare Integration**
+
    - **Cloudflare Pages** to host static Svelte assets.
    - **Cloudflare Workers** for the backend logic (API endpoints) handling reads/writes of checkbox states.
    - **Durable Objects or KV** for concurrency control and state management.
@@ -45,6 +47,7 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
    - **Cloudflare Analytics** for performance and usage insights.
 
 3. **Real-Time Data Updates**
+
    - Users see immediate updates when toggling a checkbox.
    - Potential concurrency solutions to prevent stale data or collisions.
 
@@ -63,15 +66,18 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 #### 4.1 Functional Requirements
 
 1. **Checkbox Grid**
+
    - Display up to one million checkboxes in an efficient manner.
    - Each checkbox can be toggled on/off.
    - Persistent state across sessions and geographies.
 
 2. **State Management**
+
    - Toggling a checkbox issues an update request to Cloudflare Workers.
    - The updated state is immediately reflected for all users (within an acceptable near real-time range).
 
 3. **Analytics & Logs**
+
    - Capture metrics such as number of toggles, unique IP addresses, and timestamp of toggles.
    - Possibly store these logs in Workers KV or another analytics solution for display.
 
@@ -82,14 +88,17 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 #### 4.2 Non-Functional Requirements
 
 1. **Performance**
+
    - Page load time under 50ms on a typical broadband connection.
    - Smooth rendering of the checkbox grid, using chunked/lazy loading.
 
 2. **Scalability**
+
    - Able to handle thousands of concurrent toggles.
    - No single point of failure in the architecture (Durable Objects, Workers, and KV must be used properly).
 
 3. **Reliability**
+
    - Consistent state updates without data loss or corruption.
    - Automatic failover or fallback in case of ephemeral Worker issues.
 
@@ -102,11 +111,13 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 ### 5. Proposed Architecture & Approach
 
 1. **Frontend (Svelte)**
+
    - Built as a single-page app (SPA).
    - Hosted on **Cloudflare Pages** for global edge delivery.
    - Interacts with Cloudflare Workers via WebSockets.
 
 2. **Backend (Cloudflare Workers & Durable Objects)**
+
    - **Cloudflare Workers:**
      - Lightweight API routes for reading/writing checkbox states.
      - Potential integration point for Turnstile-based CAPTCHA checks.
@@ -116,6 +127,7 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
      - Manage locking, coordinate updates, and track usage analytics.
 
 3. **Data Storage**
+
    - **Option A:** **Cloudflare Workers KV**
      - Simple key-value store.
      - Good for storing aggregated data or simpler indexing (checkbox ID → state).
@@ -125,10 +137,12 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
      - More robust concurrency control at the object level.
 
 4. **Spam/Abuse Prevention**
+
    - **Cloudflare Turnstile** for human verification if toggling is too frequent.
    - Rate-limiting suspicious IP addresses via Worker logic.
 
 5. **Deployment & CI/CD**
+
    - Hosted in a GitHub repository.
    - On commit to main branch, Cloudflare Pages automatically builds and deploys the Svelte app.
    - Workers code automatically deployed via GitHub Actions or integrated in the same Pages project.
@@ -143,26 +157,32 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 ### 6. Cloudflare Tools & Services Breakdown
 
 1. **Cloudflare Pages**
+
    - Serve the static Svelte-built site from the edge.
    - Integrates seamlessly with GitHub for CI/CD.
 
 2. **Cloudflare Workers**
+
    - Provide serverless compute for REST endpoints and logic handling.
    - Minimal cold start times.
    - Scales automatically at the edge.
 
 3. **Durable Objects**
+
    - Single-threaded concurrency for each object.
    - Manage global state distribution for the checkbox data.
 
 4. **Workers KV**
+
    - Key-value store for storing checkbox states or aggregated counts.
    - Fast, eventually consistent global reads.
 
 5. **Cloudflare Turnstile**
+
    - Provide CAPTCHA-like verification for suspicious activity.
 
 6. **Cloudflare Analytics**
+
    - Real-time monitoring of requests, usage patterns, performance.
 
 7. **Optional: Cloudflare D1 (Beta)**
@@ -183,16 +203,19 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 ### 8. User Stories & Use Cases
 
 1. **User Checks a Box**
+
    - A user visits the site, sees the grid, clicks on one checkbox.
    - The site calls the Worker’s API to update the state.
    - Response is returned indicating success; the UI updates accordingly.
 
 2. **Concurrent Users**
+
    - Multiple users in different parts of the world toggle checkboxes.
    - Durable Objects or KV ensures updates are accurate and consistent.
    - The site displays near real-time state changes.
 
 3. **Spam Attempt**
+
    - A user/bot tries to programmatically toggle thousands of checkboxes in seconds.
    - Rate limiting and/or Turnstile triggers, limiting potential abuse.
 
@@ -205,15 +228,19 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 ### 9. Potential Risks & Mitigation
 
 1. **Performance Bottlenecks**
+
    - **Mitigation:** Use Durable Objects efficiently; partition data if necessary to avoid single-object contention.
 
 2. **Eventual Consistency in KV**
+
    - **Mitigation:** Use Durable Objects for near-real-time updates and/or ephemeral memory for immediate updates.
 
 3. **Spam & Abuse**
+
    - **Mitigation:** Implement Turnstile, IP-based throttling, and edge firewall rules.
 
 4. **Large State Storage**
+
    - With up to one million checkboxes, data can get large.
    - **Mitigation:** Use pagination/lazy loading in the UI. Store states efficiently in KV or a partitioned set of Durable Objects.
 
@@ -226,19 +253,23 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 ### 10. Timeline & Milestones
 
 1. **Week 1: Requirements & Architecture**
+
    - Finalize PRD, define data model, choose between KV or D1, confirm approach for concurrency (Durable Objects).
 
 2. **Week 2–3: Frontend Implementation (Svelte)**
+
    - Create the Svelte app, build the checkbox UI.
    - Integrate a Tailwind-based approach inspired by shadcn for consistent design.
    - Integrate with Cloudflare Pages deployment.
 
 3. **Week 3–4: Cloudflare Worker & Durable Object Logic**
+
    - Implement the API routes for reading and writing checkbox states.
    - Integrate concurrency logic.
    - Set up test environment.
 
 4. **Week 4–5: Testing & QA**
+
    - Load testing for concurrency.
    - Validate performance, spam controls, and concurrency.
 
@@ -251,13 +282,16 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 ### 11. Success Metrics
 
 1. **Performance**
+
    - Time to first byte (TTFB) under 100ms globally.
    - 95% of page loads complete under 2 seconds.
 
 2. **Scalability**
+
    - Support 1,000+ concurrent toggles with minimal latency.
 
 3. **User Satisfaction**
+
    - Positive feedback from testers on responsiveness and design.
 
 4. **Abuse Prevention**
@@ -284,6 +318,4 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 
 - **Version:** 1.1
 - **Author:** [Your Name / Cloudflare Senior Engineer]
-- **Last Updated:** *[Date]*
-
-**End of PRD**
+- **Last Updated:** _[Date]_
