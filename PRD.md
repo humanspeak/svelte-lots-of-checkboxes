@@ -317,5 +317,5 @@ We aim to showcase how a **Cloudflare-first** product can be built by a senior e
 #### Document Revision
 
 - **Version:** 1.1
-- **Author:** [Your Name / Cloudflare Senior Engineer]
-- **Last Updated:** _[Date]_
+- **Author:** Jason K
+- **Last Updated:** 2025-01-19
